@@ -1,2 +1,2 @@
 # Image-transformator
-Transformator zdjęć napisany w pythonie w celu sztucznego zwiększenia wielkości bazy danych. 
+Data augmentation tool to artificially expand my data set for another project
