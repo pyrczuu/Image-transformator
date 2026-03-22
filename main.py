@@ -97,7 +97,7 @@ def dataAugmentation(class_dir, background_dir: str, goal: int) -> None:
                     ty = random.randint(0, max_y)
 
                     background.paste(color_shifted, (tx, ty), color_shifted)
-                    background.save(rf"./{class_folder}/ZZZ{amount}.png")
+                    background.save(rf"./{class_folder}/aug_{amount}.png")
                     amount += 1
     return
 if __name__ == '__main__':
