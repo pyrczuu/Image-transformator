@@ -23,13 +23,20 @@ def dataAugmentation(class_dir, background_dir: str, goal: int) -> None:
     background_dir = Path(background_dir)
     if not background_dir.exists():
         raise FileNotFoundError(f"Could not find background directory: {background_dir}")
+
     # for class
     for class_folder in class_dir.iterdir():
-        # amount of files in dir
+
         if class_folder.is_dir():
-            amount = len([f for f in class_folder.iterdir() if f.is_file()])
+
+            original_files = [f for f in class_folder.iterdir() if f.is_file()]
+            amount = len(original_files)
+
             while amount < goal:
-                for file in class_folder.iterdir():
+                for file in original_files:
+                    if amount >= goal:
+                        break
+
                     # read and remove background
                     img = Image.open(file).convert('RGBA')
                     img = remove(img)
@@ -63,7 +70,7 @@ def dataAugmentation(class_dir, background_dir: str, goal: int) -> None:
                     color_shift = color_shifts[random.randint(0, 7)]
                     data[..., :3] = np.clip(data[..., :3] + color_shift, 0, 255)
                     color_shifted = Image.fromarray(data.astype(np.uint8), "RGBA")
-                    bg_file = background_dir / f"{random.randint(0, 7)}.png"
+                    bg_file = background_dir / f"{random.randint(0, 15)}.png"
                     if bg_file.exists():
                         background = Image.open(bg_file)
                     else:
@@ -73,8 +80,8 @@ def dataAugmentation(class_dir, background_dir: str, goal: int) -> None:
                     bg_w, bg_h = background.size
                     obj_w, obj_h = color_shifted.size
 
-                    target_max_w = int(bg_w * 0.4)
-                    target_max_h = int(bg_h * 0.4)
+                    target_max_w = int(bg_w * 0.6)
+                    target_max_h = int(bg_h * 0.6)
 
                     scale_factor = min(target_max_w / obj_w, target_max_h / obj_h)
                     new_w = int(obj_w * scale_factor)
@@ -90,8 +97,8 @@ def dataAugmentation(class_dir, background_dir: str, goal: int) -> None:
                     ty = random.randint(0, max_y)
 
                     background.paste(color_shifted, (tx, ty), color_shifted)
-                    background.save(rf"./images/classes/#3003/file{amount}.png")
+                    background.save(rf"./{class_folder}/ZZZ{amount}.png")
                     amount += 1
-
+    return
 if __name__ == '__main__':
     main()
