@@ -4,11 +4,15 @@ from PIL import Image
 import numpy as np
 import random
 import cv2
+import logging
+logger = logging.getLogger(__name__)
 
 def main():
     dataAugmentation("images/classes", "images/backgrounds", 150)
 
 def dataAugmentation(class_dir, background_dir: str, goal: int) -> None:
+    logging.basicConfig(level=logging.INFO)
+    logger.info('Starting DATA AUGMENTATION')
     # idek what those will be
     color_shifts = [(100, 0, 0), (-200, 200, 0), (-110, -100, 200),
                     (200, 55, 155), (100, 0, 100), (100, 100, 0),
@@ -32,11 +36,14 @@ def dataAugmentation(class_dir, background_dir: str, goal: int) -> None:
             original_files = [f for f in class_folder.iterdir() if f.is_file()]
             amount = len(original_files)
 
+            logger.info(f'Current class: {class_folder} with {amount} files')
+
             while amount < goal:
                 for file in original_files:
                     if amount >= goal:
                         break
 
+                    logger.info(f'File {amount} out of {goal}')
                     # read and remove background
                     img = Image.open(file).convert('RGBA')
                     img = remove(img)
@@ -80,8 +87,8 @@ def dataAugmentation(class_dir, background_dir: str, goal: int) -> None:
                     bg_w, bg_h = background.size
                     obj_w, obj_h = color_shifted.size
 
-                    target_max_w = int(bg_w * 0.6)
-                    target_max_h = int(bg_h * 0.6)
+                    target_max_w = int(bg_w * 0.7)
+                    target_max_h = int(bg_h * 0.7)
 
                     scale_factor = min(target_max_w / obj_w, target_max_h / obj_h)
                     new_w = int(obj_w * scale_factor)
