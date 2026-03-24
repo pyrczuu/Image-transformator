@@ -13,7 +13,7 @@ def main():
     dataAugmentation("images/classes", "images/backgrounds", 150)
 
 def dataAugmentation(class_dir, background_dir: str, goal: int) -> None:
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(filename='logs.log', level=logging.INFO)
     logger.info('Starting DATA AUGMENTATION')
     # idek what those will be
     color_shifts = [(100, 0, 0), (-200, 200, 0), (-110, -100, 200),
@@ -26,8 +26,8 @@ def dataAugmentation(class_dir, background_dir: str, goal: int) -> None:
     amount_tilt_angle = len(tilt_angles)
 
     erase_chance = 0.20
-    erase_min_size = 0.05
-    erase_max_size = 0.15
+    erase_min_size = 0.10
+    erase_max_size = 0.25
 
     # data set
     class_dir = Path(class_dir)
@@ -62,25 +62,6 @@ def dataAugmentation(class_dir, background_dir: str, goal: int) -> None:
                     if bbox:
                         img = img.crop(bbox)
 
-                    # decide if erase part of object and execute if so
-                    erase = random.uniform(0.0, 100.0)
-                    if erase <= erase_chance:
-                        erase_size = random.uniform(erase_min_size, erase_max_size)
-                        erase_size_px = int(img.size[0] * erase_size)
-
-                        pos_x = random.randint(0 + int(img.size[0] * erase_size),int(img.size[0] - img.size[0] * erase_size))
-                        pos_y = random.randint(0 + int(img.size[1] * erase_size),int(img.size[1] - img.size[1] * erase_size))
-
-                        shape = [
-                            (pos_x - erase_size_px // 2),
-                            (pos_y - erase_size_px // 2),
-                            (pos_x + erase_size_px // 2),
-                            (pos_y + erase_size_px // 2)
-                        ]
-
-                        draw = ImageDraw.Draw(img)
-                        draw.rectangle(shape, fill="black", outline="black")
-
                     # convert to cv2 format
                     # tilt
                     cv2_img = cv2.cvtColor(np.array(img), cv2.COLOR_RGBA2BGRA)
@@ -107,7 +88,29 @@ def dataAugmentation(class_dir, background_dir: str, goal: int) -> None:
                     color_shift = color_shifts[random.randint(0, amount_color_shift-1)]
                     data[..., :3] = np.clip(data[..., :3] + color_shift, 0, 255)
                     color_shifted = Image.fromarray(data.astype(np.uint8), "RGBA")
-                    bg_file = background_dir / f"{random.randint(0, amount_bg+1)}.png"
+
+                    # decide if erase part of object and execute if so
+                    erase = random.uniform(0.0, 1.0)
+                    if erase <= erase_chance:
+                        erase_size = random.uniform(erase_min_size, erase_max_size)
+                        erase_size_px = int(color_shifted.size[0] * erase_size)
+
+                        pos_x = random.randint(0 + int(color_shifted.size[0] * erase_size),
+                                               int(color_shifted.size[0] - color_shifted.size[0] * erase_size))
+                        pos_y = random.randint(0 + int(color_shifted.size[1] * erase_size),
+                                               int(color_shifted.size[1] - color_shifted.size[1] * erase_size))
+
+                        shape = [
+                            (pos_x - erase_size_px // 2),
+                            (pos_y - erase_size_px // 2),
+                            (pos_x + erase_size_px // 2),
+                            (pos_y + erase_size_px // 2)
+                        ]
+
+                        draw = ImageDraw.Draw(color_shifted)
+                        draw.rectangle(shape, fill="black", outline="black")
+
+                    bg_file = background_dir / f"{random.randint(0, amount_bg-1)}.png"
                     if bg_file.exists():
                         background = Image.open(bg_file)
                     else:
